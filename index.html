@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<title>
+    Sample FB application
+</title>
+
+<head></head>
+
+<body>
+    <div class="fb-like" data-share="true" data-width="450" data-show-faces="true">
+    </div>
+    <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
+    </fb:login-button>
+    <br>
+    <img id="photo" />
+    <br>
+    </hr>
+    <div id="status">
+    </div>
+    <br>
+    <hr>
+    <div id="photoContainer"></div>
+    <script>
+    var photosCollections = [];
+
+    window.fbAsyncInit = function() {
+        FB.init({
+            appId: 'Your App Id',
+            xfbml: true,
+            version: 'v2.3'
+        });
+    };
+
+    (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    function checkLoginState() {
+        FB.getLoginStatus(function(response) {
+            statusChangeCallback(response);
+        });
+    }
+
+    function statusChangeCallback(response) {
+        console.log('statusChangeCallback');
+        console.log(response);
+
+        if (response.status === 'connected') {
+            // Logged into your app and Facebook.
+            testAPI();
+        } else if (response.status === 'not_authorized') {
+            // The person is logged into Facebook, but not your app.
+            document.getElementById('status').innerHTML = 'Please log ' +
+                'into this app.';
+        } else {
+            // The person is not logged into Facebook, so we're not sure if
+            // they are logged into this app or not.
+            document.getElementById('status').innerHTML = 'Please log ' +
+                'into Facebook.';
+        }
+    }
+
+    function testAPI() {
+        console.log('Welcome!  Fetching your information.... ');
+
+        FB.login(function(res) {
+            FB.api('/me/feed', function(response) {
+                //gets all the feeds...
+
+            });
+
+            FB.api('/me/photos', function(response) {
+                console.log("photos ..." + response.data);
+                for (var i = 0; i < response.data.length; i++) {
+                    photosCollections.push(response.data[i].picture);
+                    var parentElem = document.getElementById("photoContainer");
+                    var childElem = document.createElement("div");
+                    childElem.style.width = "200px";
+                    childElem.style.height = "200px";
+                    childElem.style.display = 'inline-block';
+                    childElem.style.padding = "30px";
+
+                    childElem.style.backgroundColor = 'grey';
+                    childElem.style.border = '1px solid red';
+
+                    var imgElem = document.createElement('img');
+                    imgElem.src = response.data[i].picture;
+                    childElem.appendChild(imgElem);
+
+                    parentElem.appendChild(childElem);
+                }
+
+
+            });
+
+            FB.api(
+                "/me/friendlists",
+                function(response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                    }
+                }
+            );
+
+        }, {
+            scope: "read_stream,read_custom_friendlists,user_photos"
+        });
+
+        FB.api('/me', function(response) {
+            console.log('Successful login for: ' + response.name);
+            document.getElementById('status').innerHTML =
+                'Thanks for logging in, ' + response.name + '!';
+        });
+
+        FB.api('/me?fields=posts,name,picture', function(response) {
+            console.log(response);
+            console.log(response.picture);
+            console.log(response.posts);
+            document.getElementById('photo').src =
+                response.picture.data.url;
+        });
+
+       
+    }
+    </script>
+</body>
+
+</html>
